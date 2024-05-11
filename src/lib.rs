@@ -26,7 +26,7 @@ fn quote_api_url() -> String {
 
 // Reference: https://quote-api.jup.ag/docs/static/index.html
 fn price_api_url() -> String {
-    env::var("PRICE_API_URL").unwrap_or_else(|_| "https://price.jup.ag/v1".to_string())
+    env::var("PRICE_API_URL").unwrap_or_else(|_| "https://price.jup.ag/v4".to_string())
 }
 
 /// The Errors that may occur while using this crate
@@ -183,7 +183,7 @@ where
 /// Get simple price for a given input mint, output mint, and amount
 pub async fn price(input_mint: Pubkey, output_mint: Pubkey, ui_amount: f64) -> Result<Price> {
     let url = format!(
-        "{base_url}/price?id={input_mint}&vsToken={output_mint}&amount={ui_amount}",
+        "{base_url}/price?ids={input_mint}&vsToken={output_mint}&amount={ui_amount}",
         base_url = price_api_url(),
     );
     maybe_jupiter_api_error(reqwest::get(url).await?.json().await?)
@@ -221,8 +221,8 @@ impl fmt::Display for SwapMode {
 pub struct QuoteConfig {
     pub slippage_bps: Option<u64>,
     pub swap_mode: Option<SwapMode>,
-    pub dexes: Option<Vec<Pubkey>>,
-    pub exclude_dexes: Option<Vec<Pubkey>>,
+    pub dexes: Option<String>,
+    pub exclude_dexes: Option<String>,
     pub only_direct_routes: bool,
     pub as_legacy_transaction: Option<bool>,
     pub platform_fee_bps: Option<u64>,
@@ -257,11 +257,11 @@ pub async fn quote(
             .unwrap_or_default(),
         quote_config
             .dexes
-            .map(|dexes| format!("&dexes={:?}", dexes))
+            .map(|dexes| format!("&dexes={}", dexes))
             .unwrap_or_default(),
         quote_config
             .exclude_dexes
-            .map(|exclude_dexes| format!("&excludeDexes={:?}", exclude_dexes))
+            .map(|exclude_dexes| format!("&excludeDexes={}", exclude_dexes))
             .unwrap_or_default(),
         quote_config
             .max_accounts
