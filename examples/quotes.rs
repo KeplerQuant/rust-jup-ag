@@ -14,7 +14,8 @@ async fn main() -> jup_ag::Result<()> {
     let ui_amount = 1.;
 
     for (output_token, output_decimals) in [(usdc, 6), (msol, 9), (sol, 9)] {
-        let data = jup_ag::price(sol, output_token, ui_amount).await?;
+        let price = jup_ag::price(sol, output_token).await?;
+        let data = price.data.get(&sol.to_string()).unwrap();
         println!(
             "Price for {} {} is {} {}",
             ui_amount, data.input_symbol, data.price, data.output_symbol

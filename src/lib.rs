@@ -26,7 +26,7 @@ fn quote_api_url() -> String {
 
 // Reference: https://quote-api.jup.ag/docs/static/index.html
 fn price_api_url() -> String {
-    env::var("PRICE_API_URL").unwrap_or_else(|_| "https://price.jup.ag/v4".to_string())
+    env::var("PRICE_API_URL").unwrap_or_else(|_| "https://price.jup.ag/v6".to_string())
 }
 
 /// The Errors that may occur while using this crate
@@ -54,9 +54,16 @@ pub enum Error {
     ParseSwapMode { value: String },
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Price {
+    pub data: HashMap<String, PriceData>,
+    pub time_taken: f64,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PriceData {
     #[serde(with = "field_as_string", rename = "id")]
     pub input_mint: Pubkey,
     #[serde(rename = "mintSymbol")]
@@ -181,9 +188,9 @@ where
 }
 
 /// Get simple price for a given input mint, output mint, and amount
-pub async fn price(input_mint: Pubkey, output_mint: Pubkey, ui_amount: f64) -> Result<Price> {
+pub async fn price(input_mint: Pubkey, output_mint: Pubkey) -> Result<Price> {
     let url = format!(
-        "{base_url}/price?ids={input_mint}&vsToken={output_mint}&amount={ui_amount}",
+        "{base_url}/price?ids={input_mint}&vsToken={output_mint}",
         base_url = price_api_url(),
     );
     maybe_jupiter_api_error(reqwest::get(url).await?.json().await?)
